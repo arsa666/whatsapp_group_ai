@@ -1,36 +1,39 @@
-name: PR Comment
+name: Endor Labs - JavaScript SCA Scan on PR
 
 on:
-  pull_request_target:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - unlocked
+  workflow_dispatch:
 
 jobs:
-  pr-comment:
+  scan-repo:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions: write-all
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - uses: actions/checkout@v3
+        
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
-      - uses: mshick/add-pr-comment@v2
-        with:
-          repo-token: ${{ secrets.PERSONAL_TOKEN}}
-          message-id: pr-test
-          message: |
-            Thanks for your contribution.
-
-            The next step is to wait for review and approval to merge it to main repository
-
-            The community can help reacting with a thumb up (:thumbsup:) for approval and rocket (:rocket:) for who has tested it.
-
-            To test this PR you can run the following command below:
-            ```
-            # NPM
-            npm install @whiskeysockets/baileys@${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
-            # YARN v2
-            yarn add @whiskeysockets/baileys@${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
-            ```
+        - name: Setup Node
+          uses: actions/setup-node@v3
+          with:
+            node-version: 22
+            cache: 'npm'
+            cache-dependency-path: package-lock.json
+          
+        - name: Build Dependencies
+          run: npm ci
+          
+        - name: Endor Labs SCA Scan
+          uses: endorlabs/github-action@main
+          with:
+            namespace: "arsalan-learn"
+            api: "https://api.endorlabs.com"
+            enable_github_action_token: true
+            scan_dependencies: true
+            pr: true
+            pr_baseline: main # develop, etc
+            additional_args: "--pr-incremental --phantom-dependencies=true" # Additional parameters can be passed with whitespace separation, for example: --github to enable RSPM
+            enable_pr_comments: true <-- Uncomment to enable PR comments if enabled comment out pr_baseline
+            # scan_summary_output_type: "table" <-- Uncomment to choose the format, default it table
+            github_token: ${{ secrets.GH_TOKEN }} # needs to be enabled if you want to use enable_pr_comments
