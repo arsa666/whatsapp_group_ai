@@ -6,6 +6,7 @@ import makeWASocket, { AnyMessageContent, BinaryInfo, delay, DisconnectReason, d
 import open from 'open'
 import fs from 'fs'
 import P from 'pino'
+import _ from 'lodash';
 
 const logger = P({ timestamp: () => `,"time":"${new Date().toJSON()}"` }, P.destination('./wa-logs.txt'))
 logger.level = 'trace'
@@ -13,6 +14,13 @@ logger.level = 'trace'
 const useStore = !process.argv.includes('--no-store')
 const doReplies = process.argv.includes('--do-reply')
 const usePairingCode = process.argv.includes('--use-pairing-code')
+
+
+// Example usage of vulnerability
+const data = [1, 2, 3, 4, 5];
+const reversedData = _.reverse(data);
+console.log('Reversed Data:', reversedData);
+
 
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
